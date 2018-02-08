@@ -1,17 +1,21 @@
 package com.github.hdghg.trapcha.domain;
 
+import org.springframework.data.annotation.Id;
+
+/**
+ * Entity class that represents sessionMeta collection inside mongodb
+ * Name is unique identifier of user session (stored in cookie). Quota has value of
+ * how many times user with that cookie can access content without solving captcha.
+ */
 public class SessionMeta {
 
+    @Id
     private String id;
-    private String name;
-    private Integer quota;
+    public final String guid;
+    public final Integer quota;
 
-    public SessionMeta() {
-    }
-
-    public SessionMeta(String id, String name, Integer quota) {
-        this.id = id;
-        this.name = name;
+    public SessionMeta(String guid, Integer quota) {
+        this.guid = guid;
         this.quota = quota;
     }
 
@@ -19,23 +23,8 @@ public class SessionMeta {
         return id;
     }
 
-    public void setId(String id) {
+    public SessionMeta setId(String id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getQuota() {
-        return quota;
-    }
-
-    public void setQuota(Integer quota) {
-        this.quota = quota;
+        return this;
     }
 }
