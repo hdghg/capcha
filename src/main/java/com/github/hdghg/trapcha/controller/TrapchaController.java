@@ -28,6 +28,8 @@ import java.util.UUID;
 public class TrapchaController {
 
     public static final String CAPTCHA_PAGE = "/captchaPage";
+    public static final String FILE_ID = "fileId";
+    public static final String SHARED = "/s/";
 
     private final WebClient webClient;
     private final SessionMetaReactiveRepository sessionMetaReactiveRepository;
@@ -45,7 +47,7 @@ public class TrapchaController {
      * @param fileId  File subpath
      * @return File returned if cookie has access, redirect otherwise.
      */
-    @RequestMapping(value = "s/{fileId}")
+    @RequestMapping(value = SHARED + "{" + FILE_ID + "}")
     @ResponseBody
     public Mono<ResponseEntity<Object>> getFile(@PathVariable String fileId,
                                                 @CookieValue Optional<String> session) {
@@ -66,7 +68,7 @@ public class TrapchaController {
      */
     @RequestMapping(CAPTCHA_PAGE)
     public Map<String, String> viewCaptchaPage(String fileId) {
-        return Collections.singletonMap("fileId", fileId);
+        return Collections.singletonMap(FILE_ID, fileId);
     }
 
     /**
@@ -99,7 +101,7 @@ public class TrapchaController {
     private ResponseEntity<Object> redirectBackToFile(String sessionGuid, String fileId) {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.SET_COOKIE, "session=" + sessionGuid)
-                .header(HttpHeaders.LOCATION, "/s/" + fileId)
+                .header(HttpHeaders.LOCATION, SHARED + fileId)
                 .build();
     }
 
@@ -112,7 +114,7 @@ public class TrapchaController {
      */
     private ResponseEntity<Object> redirectToCaptcha(String fileId) {
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, CAPTCHA_PAGE + "?fileId=" + fileId)
+                .header(HttpHeaders.LOCATION, CAPTCHA_PAGE + "?" + FILE_ID + "=" + fileId)
                 .build();
     }
 
