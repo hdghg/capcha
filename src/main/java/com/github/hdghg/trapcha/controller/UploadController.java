@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,8 +39,12 @@ public class UploadController {
      * @return Map of uploadPage attributes
      */
     @RequestMapping("uploadPage")
-    public Map<String, String> viewUploadPage() {
-        return Collections.emptyMap();
+    public Mono<Map<String, ?>> viewUploadPage() {
+        return tileReactiveRepository.findTop5ByOrderByIdDesc()
+                .map(t -> t.image)
+                .map(Base64Utils::encodeToString)
+                .collect(Collectors.toList())
+                .map(l -> Collections.singletonMap("recent", l));
     }
 
     /**

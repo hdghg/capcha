@@ -1,11 +1,17 @@
 package com.github.hdghg.trapcha.controller;
 
 import com.github.hdghg.trapcha.domain.SessionMeta;
+import com.github.hdghg.trapcha.domain.Task;
+import com.github.hdghg.trapcha.domain.Tile;
+import com.github.hdghg.trapcha.dto.CaptchaPage;
 import com.github.hdghg.trapcha.repository.SessionMetaReactiveRepository;
+import com.github.hdghg.trapcha.repository.TaskReactiveRepository;
+import com.github.hdghg.trapcha.repository.TileReactiveRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,10 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This controller proxies all incoming requests to external resource
@@ -29,13 +33,21 @@ public class TrapchaController {
 
     public static final String CAPTCHA_PAGE = "/captchaPage";
     public static final String FILE_ID = "fileId";
+    public static final String TASK_ID = "taskId";
+    public static final String IMAGE_LIST = "imageList";
     public static final String SHARED = "/s/";
 
     private final WebClient webClient;
     private final SessionMetaReactiveRepository sessionMetaReactiveRepository;
+    private final TileReactiveRepository tileReactiveRepository;
+    private final TaskReactiveRepository taskReactiveRepository;
 
-    public TrapchaController(SessionMetaReactiveRepository sessionMetaReactiveRepository) {
+    public TrapchaController(SessionMetaReactiveRepository sessionMetaReactiveRepository,
+                             TileReactiveRepository tileReactiveRepository,
+                             TaskReactiveRepository taskReactiveRepository) {
         this.sessionMetaReactiveRepository = sessionMetaReactiveRepository;
+        this.tileReactiveRepository = tileReactiveRepository;
+        this.taskReactiveRepository = taskReactiveRepository;
         this.webClient = WebClient.create("http://jate.im");
     }
 
@@ -50,7 +62,7 @@ public class TrapchaController {
     @RequestMapping(value = SHARED + "{" + FILE_ID + "}")
     @ResponseBody
     public Mono<ResponseEntity<Object>> getFile(@PathVariable String fileId,
-                                                @CookieValue Optional<String> session) {
+                                                @CookieValue(required = false) String session) {
         return Mono.justOrEmpty(session)
                 .flatMap(this::sessionValid)
                 .filter(v -> v)
@@ -67,8 +79,34 @@ public class TrapchaController {
      * @return Returns model for view called "captchaPage"
      */
     @RequestMapping(CAPTCHA_PAGE)
-    public Map<String, String> viewCaptchaPage(String fileId) {
-        return Collections.singletonMap(FILE_ID, fileId);
+    public Mono<Map<String, Object>> viewCaptchaPage(String fileId) {
+        return tileReactiveRepository.findSampleTiles()
+                .collect(Collectors.toList())
+                .flatMap(this::generateTask)
+                .map(cp -> Map.of(FILE_ID, fileId,
+                        TASK_ID, cp.taskId,
+                        IMAGE_LIST, cp.imageList));
+    }
+
+    /**
+     * Accepts set of {@link Tile} abstractions and generates task + answer for given
+     * tile list. Answer is saved to database, while task is wrapped to {@link CaptchaPage}
+     *
+     * @param tileList List of 9 tiles
+     * @return Generated captcha page abstraction
+     */
+    private Mono<CaptchaPage> generateTask(List<Tile> tileList) {
+        List<String> imageList = new ArrayList<>();
+        Set<Integer> answer = new HashSet<>();
+        for (int i = 0; i < tileList.size(); i++) {
+            Tile tile = tileList.get(i);
+            imageList.add(Base64Utils.encodeToString(tile.image));
+            if (tile.tags.contains("girl")) {
+                answer.add(i);
+            }
+        }
+        return taskReactiveRepository.save(new Task(answer))
+                .map(t -> new CaptchaPage(t.getId(), imageList));
     }
 
     /**

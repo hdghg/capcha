@@ -13,6 +13,10 @@
         <input type="file" name="file">
         <input type="submit" value="Upload">
     </form>
+    <h2>Recent 5 files</h2>
+    <#list recent as recentImage>
+      <img alt="img" src="data:image/png;base64,${recentImage}" />
+    </#list>
 </body>
 
 </html>
