@@ -1,12 +1,12 @@
 package com.github.hdghg.trapcha.controller;
 
+import com.github.hdghg.trapcha.dao.TileDao;
 import com.github.hdghg.trapcha.domain.SessionMeta;
 import com.github.hdghg.trapcha.domain.Task;
 import com.github.hdghg.trapcha.domain.Tile;
 import com.github.hdghg.trapcha.dto.CaptchaPage;
 import com.github.hdghg.trapcha.repository.SessionMetaReactiveRepository;
 import com.github.hdghg.trapcha.repository.TaskReactiveRepository;
-import com.github.hdghg.trapcha.repository.TileReactiveRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +39,15 @@ public class TrapchaController {
 
     private final WebClient webClient;
     private final SessionMetaReactiveRepository sessionMetaReactiveRepository;
-    private final TileReactiveRepository tileReactiveRepository;
     private final TaskReactiveRepository taskReactiveRepository;
+    private final TileDao tileDao;
 
     public TrapchaController(SessionMetaReactiveRepository sessionMetaReactiveRepository,
-                             TileReactiveRepository tileReactiveRepository,
-                             TaskReactiveRepository taskReactiveRepository) {
+                             TaskReactiveRepository taskReactiveRepository,
+                             TileDao tileDao) {
         this.sessionMetaReactiveRepository = sessionMetaReactiveRepository;
-        this.tileReactiveRepository = tileReactiveRepository;
         this.taskReactiveRepository = taskReactiveRepository;
+        this.tileDao = tileDao;
         this.webClient = WebClient.create("http://jate.im");
     }
 
@@ -80,7 +80,7 @@ public class TrapchaController {
      */
     @RequestMapping(CAPTCHA_PAGE)
     public Mono<Map<String, Object>> viewCaptchaPage(String fileId) {
-        return tileReactiveRepository.findSampleTiles()
+        return tileDao.findSampleTiles()
                 .collect(Collectors.toList())
                 .flatMap(this::generateTask)
                 .map(cp -> Map.of(FILE_ID, fileId,

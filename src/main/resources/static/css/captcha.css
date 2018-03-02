@@ -1,0 +1,42 @@
+#header {
+  background-color: #4A90E2;
+  color: white;
+}
+
+#captcha-form {
+  width: 385px;
+}
+
+#girl-sample {
+  text-align: right;
+  margin: 5px 5px 5px 5px;
+  border: 2px solid white;
+  display: inline-block;
+}
+
+#welcome-text {
+  display: inline-block;
+  vertical-align: top;
+  margin: 5px;
+}
+
+#task-form {
+  margin: 5px 0 0 0;
+}
+
+.single-image {
+  display: inline-block;
+  position: relative;
+}
+
+.single-checkbox {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 20%;
+  height: 20%;
+}
+
+body {
+  font-family: Roboto,helvetica,arial,sans-serif;
+}
