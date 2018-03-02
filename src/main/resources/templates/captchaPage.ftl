@@ -24,12 +24,14 @@
                 <#list imageList as image>
                     <div class="single-image">
                         <img alt="img" src="data:image/png;base64,${image}" />
-                        <input class="single-checkbox" type="checkbox" name="ans${image?counter}">
+                        <input class="single-checkbox" type="checkbox"
+                            name="answer" value="${image?counter}">
                     </div>
                 </#list>
             </div>
             <p>
-                <input type="hidden" name="fileId" value="123">
+                <input type="hidden" name="fileId" value="${fileId}">
+                <input type="hidden" name="taskId" value="${taskId}">
                 <input type="submit" value="Verify">
             </p>
 

@@ -102,7 +102,7 @@ public class TrapchaController {
             Tile tile = tileList.get(i);
             imageList.add(Base64Utils.encodeToString(tile.image));
             if (tile.tags.contains("girl")) {
-                answer.add(i);
+                answer.add(i + 1);
             }
         }
         return taskReactiveRepository.save(new Task(answer))
@@ -118,8 +118,8 @@ public class TrapchaController {
      * @return Response object with redirection path based on correctness of user's answer
      */
     @RequestMapping("validate")
-    public Mono<ResponseEntity<Object>> validate(String fileId) {
-        return solutionValid(null, null)
+    public Mono<ResponseEntity<Object>> validate(String fileId, String taskId, Integer[] answer) {
+        return answerValid(taskId, answer)
                 .filter(v -> v)
                 .map(unbound -> new SessionMeta(UUID.randomUUID().toString(), 5))
                 .flatMap(sessionMetaReactiveRepository::save)
@@ -157,14 +157,16 @@ public class TrapchaController {
     }
 
     /**
-     * Checks if user's captcha solution is valid
+     * Checks if user's captcha answer is valid
      *
      * @param taskId   Id of task
-     * @param solution Solution
-     * @return True when solution is valid, false otherwise
+     * @param answer Solution
+     * @return True when answer is valid, false otherwise
      */
-    private Mono<Boolean> solutionValid(String taskId, String solution) {
-        return Mono.just(true);
+    private Mono<Boolean> answerValid(String taskId, Integer[] answer) {
+        return taskReactiveRepository.findById(taskId)
+                .filter(t -> t.answerSet.equals(Set.of(answer)))
+                .map(t -> true);
     }
 
     /**
