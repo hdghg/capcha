@@ -7,6 +7,7 @@ import com.github.hdghg.trapcha.domain.Tile;
 import com.github.hdghg.trapcha.dto.CaptchaPage;
 import com.github.hdghg.trapcha.repository.SessionMetaReactiveRepository;
 import com.github.hdghg.trapcha.repository.TaskReactiveRepository;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,13 +43,15 @@ public class TrapchaController {
     private final TaskReactiveRepository taskReactiveRepository;
     private final TileDao tileDao;
 
-    public TrapchaController(SessionMetaReactiveRepository sessionMetaReactiveRepository,
+    public TrapchaController(Environment environment,
+                             SessionMetaReactiveRepository sessionMetaReactiveRepository,
                              TaskReactiveRepository taskReactiveRepository,
                              TileDao tileDao) {
         this.sessionMetaReactiveRepository = sessionMetaReactiveRepository;
         this.taskReactiveRepository = taskReactiveRepository;
         this.tileDao = tileDao;
-        this.webClient = WebClient.create("http://jate.im");
+        String guardedResource = environment.getProperty("guarded-resource");
+        this.webClient = WebClient.create(guardedResource);
     }
 
     /**
@@ -159,7 +162,7 @@ public class TrapchaController {
     /**
      * Checks if user's captcha answer is valid
      *
-     * @param taskId   Id of task
+     * @param taskId Id of task
      * @param answer Solution
      * @return True when answer is valid, false otherwise
      */
