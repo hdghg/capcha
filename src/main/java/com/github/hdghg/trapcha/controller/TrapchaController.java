@@ -1,5 +1,7 @@
 package com.github.hdghg.trapcha.controller;
 
+import com.github.hdghg.trapcha.constants.Constants;
+import com.github.hdghg.trapcha.controller.redirect.Redirect;
 import com.github.hdghg.trapcha.dao.TileDao;
 import com.github.hdghg.trapcha.domain.SessionMeta;
 import com.github.hdghg.trapcha.domain.Task;
@@ -7,71 +9,32 @@ import com.github.hdghg.trapcha.domain.Tile;
 import com.github.hdghg.trapcha.dto.CaptchaPage;
 import com.github.hdghg.trapcha.repository.SessionMetaReactiveRepository;
 import com.github.hdghg.trapcha.repository.TaskReactiveRepository;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * This controller proxies all incoming requests to external resource
- * Intention of this is to check whether session valid and if not
- * redirect user to captcha page
- */
 @Controller
 @RequestMapping
 public class TrapchaController {
 
-    public static final String CAPTCHA_PAGE = "/captchaPage";
-    public static final String FILE_ID = "fileId";
-    public static final String TASK_ID = "taskId";
-    public static final String IMAGE_LIST = "imageList";
-    public static final String SHARED = "/s/";
-
-    private final WebClient webClient;
     private final SessionMetaReactiveRepository sessionMetaReactiveRepository;
     private final TaskReactiveRepository taskReactiveRepository;
     private final TileDao tileDao;
+    private final Redirect redirect;
 
-    public TrapchaController(Environment environment,
-                             SessionMetaReactiveRepository sessionMetaReactiveRepository,
+    public TrapchaController(SessionMetaReactiveRepository sessionMetaReactiveRepository,
                              TaskReactiveRepository taskReactiveRepository,
-                             TileDao tileDao) {
+                             TileDao tileDao,
+                             Redirect redirect) {
         this.sessionMetaReactiveRepository = sessionMetaReactiveRepository;
         this.taskReactiveRepository = taskReactiveRepository;
         this.tileDao = tileDao;
-        String guardedResource = environment.getProperty("guarded-resource");
-        this.webClient = WebClient.create(guardedResource);
-    }
-
-    /**
-     * Maps /s/{fileId} requests to remote [GET] /{fileId} url pattern
-     * If user cookie is not authorised then redirects on captcha page
-     *
-     * @param session Value of cookie "session"
-     * @param fileId  File subpath
-     * @return File returned if cookie has access, redirect otherwise.
-     */
-    @RequestMapping(value = SHARED + "{" + FILE_ID + "}")
-    @ResponseBody
-    public Mono<ResponseEntity<Object>> getFile(@PathVariable String fileId,
-                                                @CookieValue(required = false) String session) {
-        return Mono.justOrEmpty(session)
-                .flatMap(this::sessionValid)
-                .filter(v -> v)
-                .flatMap(unbound -> webClient.get().uri(fileId).exchange())
-                .flatMap(clientResponse -> clientResponse.toEntity(Object.class))
-                .defaultIfEmpty(redirectToCaptcha(fileId));
+        this.redirect = redirect;
     }
 
     /**
@@ -81,14 +44,14 @@ public class TrapchaController {
      *               subpath user tried to access.
      * @return Returns model for view called "captchaPage"
      */
-    @RequestMapping(CAPTCHA_PAGE)
+    @RequestMapping(Constants.CAPTCHA_PAGE)
     public Mono<Map<String, Object>> viewCaptchaPage(String fileId) {
         return tileDao.findSampleTiles()
                 .collect(Collectors.toList())
                 .flatMap(this::generateTask)
-                .map(cp -> Map.of(FILE_ID, fileId,
-                        TASK_ID, cp.taskId,
-                        IMAGE_LIST, cp.imageList));
+                .map(cp -> Map.of(Constants.FILE_ID, fileId,
+                        Constants.TASK_ID, cp.taskId,
+                        Constants.IMAGE_LIST, cp.imageList));
     }
 
     /**
@@ -124,39 +87,10 @@ public class TrapchaController {
     public Mono<ResponseEntity<Object>> validate(String fileId, String taskId, Integer[] answer) {
         return answerValid(taskId, answer)
                 .filter(v -> v)
-                .map(unbound -> new SessionMeta(UUID.randomUUID().toString(), 5))
+                .map(unbound -> new SessionMeta(UUID.randomUUID().toString(), 20))
                 .flatMap(sessionMetaReactiveRepository::save)
-                .map(sessionMeta -> redirectBackToFile(sessionMeta.guid, fileId))
-                .defaultIfEmpty(redirectToCaptcha(fileId));
-    }
-
-
-    /**
-     * Generates response that redirects user back to file he tried to access. Also sets cookie
-     * that will allow user to get certain amount of files without entering captcha.
-     *
-     * @param sessionGuid Value of cookie "session" to be set
-     * @param fileId      File user will be redirected to after setting cookie
-     * @return Response entity that sets cookie and redirects back to originally loaded file
-     */
-    private ResponseEntity<Object> redirectBackToFile(String sessionGuid, String fileId) {
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.SET_COOKIE, "session=" + sessionGuid)
-                .header(HttpHeaders.LOCATION, SHARED + fileId)
-                .build();
-    }
-
-    /**
-     * Generates response that redirects user to captcha page
-     *
-     * @param fileId File user tries to access. Required to redirect user back on successful captcha
-     *               solution.
-     * @return Response with redirecion
-     */
-    private ResponseEntity<Object> redirectToCaptcha(String fileId) {
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, CAPTCHA_PAGE + "?" + FILE_ID + "=" + fileId)
-                .build();
+                .map(sessionMeta -> redirect.toFile(sessionMeta.guid, fileId))
+                .defaultIfEmpty(redirect.toCaptchaPage(fileId));
     }
 
     /**
@@ -172,17 +106,4 @@ public class TrapchaController {
                 .map(t -> true);
     }
 
-    /**
-     * Detects if cookie valid based on quota argument. Quota is stored inside
-     * database and decreased each time this method called.
-     *
-     * @param sessionGuid Session unique id
-     * @return True when session valid, false otherwise.
-     */
-    private Mono<Boolean> sessionValid(String sessionGuid) {
-        return sessionMetaReactiveRepository.findByGuid(sessionGuid)
-                .map(sm -> new SessionMeta(sm.guid, sm.quota - 1).setId(sm.getId()))
-                .flatMap(sessionMetaReactiveRepository::save)
-                .map(sm -> sm.quota >= 0);
-    }
 }
