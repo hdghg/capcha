@@ -68,8 +68,28 @@ public class ProxyController {
      */
     private Mono<Boolean> sessionValid(String sessionGuid) {
         return sessionMetaReactiveRepository.findByGuid(sessionGuid)
-                .map(sm -> new SessionMeta(sm.guid, sm.quota - 1).setId(sm.getId()))
-                .flatMap(sessionMetaReactiveRepository::save)
-                .map(sm -> sm.quota >= 0);
+                .doAfterSuccessOrError(this::decrementQuota)
+                .map(sm -> sm.quota > 0);
+    }
+
+    /**
+     * Decrement session's qouta. If quote equal or less then 1, then entire object is removed from
+     * database. Actions are propagated to asynchronous thread.
+     * @param sm SessionMeta whose quota to be decremented
+     * @param throwable Ignored error
+     */
+    private void decrementQuota(SessionMeta sm, Throwable throwable) {
+        if (null == sm) {
+            return;
+        }
+        Mono<?> result;
+        if (1 >= sm.quota) {
+            result = sessionMetaReactiveRepository.delete(sm);
+        } else {
+            SessionMeta sessionMeta = new SessionMeta(sm.guid, sm.quota - 1)
+                    .setId(sm.getId());
+            result = sessionMetaReactiveRepository.save(sessionMeta);
+        }
+        result.subscribe();
     }
 }
