@@ -1,14 +1,14 @@
-package com.github.hdghg.trapcha.controller;
+package com.github.hdghg.capcha.controller;
 
-import com.github.hdghg.trapcha.constants.Constants;
-import com.github.hdghg.trapcha.controller.redirect.Redirect;
-import com.github.hdghg.trapcha.dao.TileDao;
-import com.github.hdghg.trapcha.domain.SessionMeta;
-import com.github.hdghg.trapcha.domain.Task;
-import com.github.hdghg.trapcha.domain.Tile;
-import com.github.hdghg.trapcha.dto.CaptchaPage;
-import com.github.hdghg.trapcha.repository.SessionMetaReactiveRepository;
-import com.github.hdghg.trapcha.repository.TaskReactiveRepository;
+import com.github.hdghg.capcha.constants.Constants;
+import com.github.hdghg.capcha.controller.redirect.Redirect;
+import com.github.hdghg.capcha.dao.TileDao;
+import com.github.hdghg.capcha.domain.SessionMeta;
+import com.github.hdghg.capcha.domain.Task;
+import com.github.hdghg.capcha.domain.Tile;
+import com.github.hdghg.capcha.dto.CaptchaPage;
+import com.github.hdghg.capcha.repository.SessionMetaReactiveRepository;
+import com.github.hdghg.capcha.repository.TaskReactiveRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
@@ -20,17 +20,17 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping
-public class TrapchaController {
+public class CapchaController {
 
     private final SessionMetaReactiveRepository sessionMetaReactiveRepository;
     private final TaskReactiveRepository taskReactiveRepository;
     private final TileDao tileDao;
     private final Redirect redirect;
 
-    public TrapchaController(SessionMetaReactiveRepository sessionMetaReactiveRepository,
-                             TaskReactiveRepository taskReactiveRepository,
-                             TileDao tileDao,
-                             Redirect redirect) {
+    public CapchaController(SessionMetaReactiveRepository sessionMetaReactiveRepository,
+                            TaskReactiveRepository taskReactiveRepository,
+                            TileDao tileDao,
+                            Redirect redirect) {
         this.sessionMetaReactiveRepository = sessionMetaReactiveRepository;
         this.taskReactiveRepository = taskReactiveRepository;
         this.tileDao = tileDao;

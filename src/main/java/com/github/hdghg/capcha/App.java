@@ -1,4 +1,4 @@
-package com.github.hdghg.trapcha;
+package com.github.hdghg.capcha;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

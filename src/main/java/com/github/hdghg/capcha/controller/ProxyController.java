@@ -1,9 +1,9 @@
-package com.github.hdghg.trapcha.controller;
+package com.github.hdghg.capcha.controller;
 
-import com.github.hdghg.trapcha.constants.Constants;
-import com.github.hdghg.trapcha.controller.redirect.Redirect;
-import com.github.hdghg.trapcha.domain.SessionMeta;
-import com.github.hdghg.trapcha.repository.SessionMetaReactiveRepository;
+import com.github.hdghg.capcha.constants.Constants;
+import com.github.hdghg.capcha.controller.redirect.Redirect;
+import com.github.hdghg.capcha.domain.SessionMeta;
+import com.github.hdghg.capcha.repository.SessionMetaReactiveRepository;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

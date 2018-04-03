@@ -1,4 +1,4 @@
-package com.github.hdghg.trapcha.dto;
+package com.github.hdghg.capcha.dto;
 
 import java.util.List;
 

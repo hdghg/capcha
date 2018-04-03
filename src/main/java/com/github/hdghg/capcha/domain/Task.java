@@ -1,4 +1,4 @@
-package com.github.hdghg.trapcha.domain;
+package com.github.hdghg.capcha.domain;
 
 import java.util.Set;
 

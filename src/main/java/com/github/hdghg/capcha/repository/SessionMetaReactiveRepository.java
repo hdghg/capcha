@@ -1,6 +1,6 @@
-package com.github.hdghg.trapcha.repository;
+package com.github.hdghg.capcha.repository;
 
-import com.github.hdghg.trapcha.domain.SessionMeta;
+import com.github.hdghg.capcha.domain.SessionMeta;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 

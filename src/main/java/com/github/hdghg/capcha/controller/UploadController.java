@@ -1,7 +1,7 @@
-package com.github.hdghg.trapcha.controller;
+package com.github.hdghg.capcha.controller;
 
-import com.github.hdghg.trapcha.domain.Tile;
-import com.github.hdghg.trapcha.repository.TileReactiveRepository;
+import com.github.hdghg.capcha.domain.Tile;
+import com.github.hdghg.capcha.repository.TileReactiveRepository;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -39,7 +39,7 @@ public class UploadController {
      * @return Map of uploadPage attributes
      */
     @RequestMapping("uploadPage")
-    public Mono<Map<String, ?>> viewUploadPage() {
+    private Mono<Map<String, ?>> viewUploadPage() {
         return tileReactiveRepository.findTop5ByOrderByIdDesc()
                 .map(t -> t.image)
                 .map(Base64Utils::encodeToString)

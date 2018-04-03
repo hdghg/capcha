@@ -1,6 +1,6 @@
-package com.github.hdghg.trapcha.repository;
+package com.github.hdghg.capcha.repository;
 
-import com.github.hdghg.trapcha.domain.Task;
+import com.github.hdghg.capcha.domain.Task;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 /**

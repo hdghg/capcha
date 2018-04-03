@@ -1,6 +1,6 @@
-package com.github.hdghg.trapcha.controller.redirect;
+package com.github.hdghg.capcha.controller.redirect;
 
-import com.github.hdghg.trapcha.constants.Constants;
+import com.github.hdghg.capcha.constants.Constants;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

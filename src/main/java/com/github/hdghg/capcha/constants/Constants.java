@@ -1,4 +1,4 @@
-package com.github.hdghg.trapcha.constants;
+package com.github.hdghg.capcha.constants;
 
 /**
  * Project constants
