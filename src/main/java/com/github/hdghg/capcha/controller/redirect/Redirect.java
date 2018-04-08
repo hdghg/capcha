@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 /**
  * Redirection builders
@@ -34,10 +35,12 @@ public class Redirect {
      *               solution.
      * @return Response with redirecion
      */
-    public ResponseEntity<Object> toCaptchaPage(String fileId) {
-        String location = Constants.CAPTCHA_PAGE + "?" + Constants.FILE_ID + "=" + fileId;
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, location)
-                .build();
+    public Mono<ResponseEntity<Object>> toCaptchaPage(String fileId) {
+        return Mono.fromCallable(() -> {
+            String location = Constants.CAPTCHA_PAGE + "?" + Constants.FILE_ID + "=" + fileId;
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header(HttpHeaders.LOCATION, location)
+                    .build();
+        });
     }
 }

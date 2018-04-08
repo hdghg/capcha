@@ -56,7 +56,7 @@ public class ProxyController {
                 .filter(v -> v)
                 .flatMap(unbound -> webClient.get().uri(fileId).exchange())
                 .flatMap(clientResponse -> clientResponse.toEntity(Object.class))
-                .defaultIfEmpty(redirect.toCaptchaPage(fileId));
+                .switchIfEmpty(redirect.toCaptchaPage(fileId));
     }
 
     /**

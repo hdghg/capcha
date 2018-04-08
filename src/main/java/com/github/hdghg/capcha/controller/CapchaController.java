@@ -90,7 +90,7 @@ public class CapchaController {
                 .map(unbound -> new SessionMeta(UUID.randomUUID().toString(), 20))
                 .flatMap(sessionMetaReactiveRepository::save)
                 .map(sessionMeta -> redirect.toFile(sessionMeta.guid, fileId))
-                .defaultIfEmpty(redirect.toCaptchaPage(fileId));
+                .switchIfEmpty(redirect.toCaptchaPage(fileId));
     }
 
     /**
