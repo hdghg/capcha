@@ -2,7 +2,6 @@ package com.github.hdghg.capcha.controller;
 
 import com.github.hdghg.capcha.domain.Tile;
 import com.github.hdghg.capcha.repository.TileReactiveRepository;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
